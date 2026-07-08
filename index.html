@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Bãi Container - CY TMS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans">
+
+    <div id="login-screen" class="flex items-center justify-center min-h-screen bg-slate-900 bg-cover bg-center" style="background-image: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.9)), url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1000');">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all">
+            <div class="text-center mb-8">
+                <div class="inline-flex p-3 bg-blue-100 text-blue-600 rounded-full mb-3">
+                    <i data-lucide="ship"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800">CY Management System</h1>
+                <p class="text-sm text-slate-500 mt-1">Hệ thống mô phỏng quản lý bãi Container (TMS)</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Chọn Vai Trò Đăng Nhập</label>
+                    <select id="role-select" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        <option value="Manager">1. Quản lý (Manager)</option>
+                        <option value="Dispatcher">2. Điều độ (Dispatcher/Operator)</option>
+                        <option value="Gate">3. Nhân viên Cổng (Gate)</option>
+                        <option value="Documentation">4. Chứng từ (Documentation)</option>
+                        <option value="Equipment">5. Thiết bị (Equipment)</option>
+                        <option value="Customer">6. Khách hàng (Customer A)</option>
+                    </select>
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition duration-200 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+                    Vào Hệ Thống <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="mt-6 text-center text-xs text-slate-400">Bài tập môn học - Phát triển Frontend</div>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden flex min-h-screen">
+        
+        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-xl">
+            <div class="p-5 bg-slate-950 flex items-center gap-3 border-b border-slate-800">
+                <i data-lucide="layout-dashboard" class="text-blue-500"></i>
+                <span class="font-bold text-white tracking-wide text-lg">TMS - CY PANEL</span>
+            </div>
+            <div class="p-4 bg-slate-850 border-b border-slate-800 text-xs">
+                <p class="text-slate-400">Đang đăng nhập với vai trò:</p>
+                <p id="current-role-badge" class="font-bold text-emerald-400 mt-1 uppercase tracking-wider bg-emerald-950/50 px-2 py-1 rounded inline-block"></p>
+            </div>
+            <nav id="sidebar-menu" class="flex-1 p-4 space-y-1 overflow-y-auto">
+                </nav>
+            <div class="p-4 border-t border-slate-800">
+                <button onclick="handleLogout()" class="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-950/30 rounded-lg transition">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Đăng xuất
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col overflow-x-hidden">
+            <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 shadow-sm">
+                <h2 id="page-title" class="text-xl font-bold text-slate-800">Tổng quan hệ thống</h2>
+                <div class="flex items-center gap-4">
+                    <span id="current-time" class="text-sm text-slate-500"></span>
+                </div>
+            </header>
+
+            <div id="content-viewport" class="p-8 flex-1">
+                
+                <div id="global-alerts" class="mb-6 space-y-2"></div>
+
+                <section id="section-dashboard" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-xs border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-slate-500 font-medium">Tổng Container</p>
+                                <h3 id="stat-total" class="text-3xl font-bold text-slate-800 mt-1">0</h3>
+                            </div>
+                            <div class="p-3 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="box"></i></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-xs border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-slate-500 font-medium">Có Hàng (Full)</p>
+                                <h3 id="stat-full" class="text-3xl font-bold text-emerald-600 mt-1">0</h3>
+                            </div>
+                            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="package-check"></i></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-xs border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-slate-500 font-medium">Container Rỗng (Empty)</p>
+                                <h3 id="stat-empty" class="text-3xl font-bold text-amber-600 mt-1">0</h3>
+                            </div>
+                            <div class="p-3 bg-amber-50 text-amber-600 rounded-lg"><i data-lucide="package-open"></i></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-xs border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-slate-500 font-medium">Tỷ lệ lấp đầy bãi</p>
+                                <h3 id="stat-occupancy" class="text-3xl font-bold text-indigo-600 mt-1">0%</h3>
+                            </div>
+                            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><i data-lucide="percent"></i></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="section-yard" class="hidden space-y-6">
+                    <div id="container-form-block" class="bg-white p-6 rounded-xl shadow-xs border border-slate-200">
+                        <h3 id="form-title" class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="plus-circle" class="text-blue-600"></i> Khai báo / Cập nhật Container</h3>
+                        <form id="container-form" onsubmit="saveContainer(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <input type="hidden" id="form-index">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Mã Container (Vd: TGHU1234567)</label>
+                                <input type="text" id="cont-id" required placeholder="4 chữ + 7 số" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm uppercase">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Kích thước</label>
+                                <select id="cont-size" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                                    <option value="20ft">20 Feet</option>
+                                    <option value="40ft">40 Feet</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Trạng thái hàng</label>
+                                <select id="cont-status" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                                    <option value="Có hàng">Có hàng (Full)</option>
+                                    <option value="Rỗng">Rỗng (Empty)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Vị trí bãi (Block-Row-Tier)</label>
+                                <input type="text" id="cont-position" required placeholder="Ví dụ: A-04-02" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Khách hàng (Hãng tàu)</label>
+                                <input type="text" id="cont-customer" required placeholder="Ví dụ: Maersk, COSCO..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Ngày nhập bãi</label>
+                                <input type="date" id="cont-gatein" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Ghi chú vận hành</label>
+                                <input type="text" id="cont-notes" placeholder="Tình trạng vỏ, kiểm hóa..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                            </div>
+                            <div class="md:col-span-4 flex justify-end gap-2 mt-2">
+                                <button type="button" onclick="resetForm()" class="px-4 py-2 bg-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-300 transition">Hủy</button>
+                                <button type="submit" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 shadow-sm transition">Lưu dữ liệu</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+                        <div class="p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 flex-1">
+                                <div class="relative w-full max-w-xs">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i data-lucide="search" class="w-4 h-4"></i></span>
+                                    <input type="text" id="search-box" oninput="handleFilter()" placeholder="Tìm mã container, vị trí..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm outline-none bg-white">
+                                </div>
+                                <select id="filter-status" onchange="handleFilter()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
+                                    <option value="All">Tất cả trạng thái</option>
+                                    <option value="Có hàng">Có hàng</option>
+                                    <option value="Rỗng">Rỗng</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="exportToCSV()" class="px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 text-sm font-medium rounded-lg flex items-center gap-2 transition">
+                                    <i data-lucide="download" class="w-4 h-4"></i> Xuất Excel/CSV
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-100 text-slate-700 uppercase text-xs font-semibold tracking-wider border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-6 py-3.5">Mã Container</th>
+                                        <th class="px-6 py-3.5">Kích thước</th>
+                                        <th class="px-6 py-3.5">Trạng thái</th>
+                                        <th class="px-6 py-3.5">Vị trí bãi</th>
+                                        <th class="px-6 py-3.5">Khách hàng</th>
+                                        <th class="px-6 py-3.5">Ngày nhập</th>
+                                        <th class="px-6 py-3.5">Tồn bãi</th>
+                                        <th id="th-actions" class="px-6 py-3.5 text-right">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="container-table-body" class="divide-y divide-slate-200">
+                                    </tbody>
+                            </table>
+                        </div>
+
+                        <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+                            <span id="pagination-info" class="text-xs text-slate-500">Hiển thị 1-5 trên 10 container</span>
+                            <div class="flex gap-1">
+                                <button onclick="changePage(-1)" class="p-1.5 border border-slate-300 rounded hover:bg-slate-200 disabled:opacity-50" id="btn-prev"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                                <button onclick="changePage(1)" class="p-1.5 border border-slate-300 rounded hover:bg-slate-200 disabled:opacity-50" id="btn-next"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="section-docs" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200">
+                        <h3 class="text-lg font-bold mb-4">Quản Lý Vận Đơn (Bill of Lading) & Lệnh Giao Nhận (EIR)</h3>
+                        <div class="border rounded-lg overflow-hidden">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-slate-50 border-b">
+                                    <tr>
+                                        <th class="p-4">Số Vận Đơn (B/L)</th>
+                                        <th class="p-4">Số Phiếu EIR</th>
+                                        <th class="p-4">Hãng tàu</th>
+                                        <th class="p-4">Loại hình</th>
+                                        <th class="p-4">Trạng thái duyệt</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y">
+                                    <tr>
+                                        <td class="p-4 font-semibold text-blue-600">BL-MSK-2026A</td>
+                                        <td class="p-4">EIR-99812</td>
+                                        <td class="p-4">MAERSK LINE</td>
+                                        <td class="p-4"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">Hàng Nhập</span></td>
+                                        <td class="p-4 text-emerald-600 font-medium">✓ Đã Phát Lệnh</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-4 font-semibold text-blue-600">BL-ONE-7721X</td>
+                                        <td class="p-4">EIR-33412</td>
+                                        <td class="p-4">ONE LINE</td>
+                                        <td class="p-4"><span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-xs">Hàng Xuất</span></td>
+                                        <td class="p-4 text-amber-600 font-medium">⏳ Chờ Hải Quan</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="section-equipment" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-5 rounded-xl border border-emerald-200 shadow-xs">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-slate-800">Xe Nâng Khử (Reach Stacker 01)</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Vị trí tác nghiệp: Block A</p>
+                                </div>
+                                <span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded">ĐANG CHẠY</span>
+                            </div>
+                            <div class="mt-4 text-xs text-slate-600">Bảo trì kế tiếp: 25 ngày nữa</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-emerald-200 shadow-xs">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-slate-800">Cẩu Giàn RTG 02</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Vị trí tác nghiệp: Block B</p>
+                                </div>
+                                <span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded">ĐANG CHẠY</span>
+                            </div>
+                            <div class="mt-4 text-xs text-slate-600">Bảo trì kế tiếp: 12 ngày nữa</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-amber-200 shadow-xs">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-slate-800">Xe Đầu Kéo Yard-Truck 05</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Khu vực: Cổng Giao Nhận</p>
+                                </div>
+                                <span class="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded">ĐANG BẢO TRÌ</span>
+                            </div>
+                            <div class="mt-4 text-xs text-slate-600 text-red-500">Lý do: Thay nhớt & sửa phanh điện</div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
